@@ -1,0 +1,37 @@
+#include <SPI.h>
+#include <LoRa.h>
+
+#define ss 10
+#define rst 9
+#define dio0 2
+
+// Sync word must match the transmitter (0xF4 for Group 4)
+#define LORA_SYNC_WORD 0xF4
+
+void setup() {
+    Serial.begin(9600);
+    
+    LoRa.setPins(ss, rst, dio0);
+    if (!LoRa.begin(421E6)) {  // Set frequency to 421 MHz
+        Serial.println("LoRa failed!");
+        while (1);
+    }
+
+    // Set the same sync word as the transmitter
+    LoRa.setSyncWord(LORA_SYNC_WORD);
+    
+    Serial.println("LoRa Receiver Ready");
+    Serial.print("Listening for Sync Word: 0x");
+    Serial.println(LORA_SYNC_WORD, HEX);
+}
+
+void loop() {
+    int packetSize = LoRa.parsePacket();
+    if (packetSize) {
+        Serial.print("Received: ");
+        while (LoRa.available()) {
+            Serial.print((char)LoRa.read());
+        }
+        Serial.println();
+    }
+}
