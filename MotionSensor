@@ -1,0 +1,22 @@
+const int pirPin = 2;  // PIR output pin
+const int ledPin = 3;  // Optional LED pin
+
+void setup() {
+  pinMode(pirPin, INPUT);
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  int motion = digitalRead(pirPin);
+  
+  if (motion == HIGH) {
+    Serial.println("Motion detected!");
+    digitalWrite(ledPin, HIGH);  // Turn on LED
+  } else {
+    Serial.println("No motion");
+    digitalWrite(ledPin, LOW);   // Turn off LED
+  }
+  
+  delay(200);  // Short delay to avoid flooding serial
+}
