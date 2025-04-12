@@ -1,0 +1,58 @@
+#include <SPI.h>
+#include <LoRa.h>
+#include <DHT.h>
+
+#define ss 10
+#define rst 9
+#define dio0 2
+#define DHTPIN 4      // DHT11 sensor connected to digital pin 4
+#define DHTTYPE DHT11 // Define the DHT sensor type
+
+// Sync word for Group 4 (0xF4)
+#define LORA_SYNC_WORD 0xF6
+
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+    Serial.begin(9600);
+    dht.begin();  // Initialize the DHT sensor
+
+    LoRa.setPins(ss, rst, dio0);
+    if (!LoRa.begin(421E6)) {  // Set frequency to 865 MHz
+        Serial.println("LoRa failed!");
+        while (1);
+    }
+    
+    // Set the sync word
+    LoRa.setSyncWord(LORA_SYNC_WORD);
+    
+    Serial.println("LoRa Transmitter Ready");
+    Serial.print("Using Sync Word: 0x");
+    Serial.println(LORA_SYNC_WORD, HEX);
+}
+
+void loop() {
+    float temperature = dht.readTemperature(); // Read temperature in °C
+    float humidity = dht.readHumidity();       // Read humidity in %
+
+    if (isnan(temperature) || isnan(humidity)) {
+        Serial.println("Failed to read from DHT sensor!");
+        return;
+    }
+
+    Serial.print("Group-6 Sending: Temp = ");
+    Serial.print(temperature);
+    Serial.print("°C, Humidity = ");
+    Serial.print(humidity);
+    Serial.println("%");
+
+    LoRa.beginPacket();
+    LoRa.print("Temp: ");
+    LoRa.print(temperature);
+    LoRa.print("C, Humidity: ");
+    LoRa.print(humidity);
+    LoRa.print("%");
+    LoRa.endPacket();
+
+    delay(5000); // Send data every 5 seconds
+}
