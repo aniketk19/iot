@@ -1,0 +1,23 @@
+const int ldrPin = A0;  // LDR connected to A0
+const int ledPin = 3;   // Optional LED pin
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  int lightLevel = analogRead(ldrPin);
+  
+  Serial.print("Light level: ");
+  Serial.println(lightLevel);
+  
+  // Optional: Turn on LED when dark
+  if (lightLevel < 500) {  // Adjust threshold as needed
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(ledPin, LOW);
+  }
+  
+  delay(500);  // Short delay between readings
+}
