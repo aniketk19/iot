@@ -1,0 +1,19 @@
+#include <Servo.h>
+
+Servo servo;  // Create servo object
+
+void setup() {
+  servo.attach(9);  // Servo on pin 9
+  Serial.begin(9600);
+}
+
+void loop() {
+  int pot = analogRead(A0);  // Read potentiometer
+  int angle = map(pot, 0, 1023, 0, 180);  // Convert to angle
+  
+  servo.write(angle);  // Move servo
+  
+  Serial.println(angle);  // Show angle
+  
+  delay(50);  // Short delay
+}
