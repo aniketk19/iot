@@ -1,0 +1,63 @@
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+#include <DHT.h>
+
+#define DHTPIN 2        // DHT11 data pin
+#define DHTTYPE DHT11   // Define sensor type
+
+// NRF24L01 module (CE, CSN)
+RF24 radio(8, 10);
+
+const byte address[6] = "00001";  // Communication address
+
+DHT dht(DHTPIN, DHTTYPE);
+
+struct SensorData {
+    float temperature;
+    float humidity;
+};
+
+void setup() {
+    Serial.begin(9600);   // Initialize serial communication
+    dht.begin();          // Start DHT sensor
+    
+    radio.begin();        // Start NRF24L01 module
+    radio.openWritingPipe(address);  // Set the same address as receiver
+    radio.setPALevel(RF24_PA_LOW);   // Set power level to low
+    radio.stopListening();  // Set as transmitter
+    
+    Serial.println("NRF24L01 Transmitter Initialized");
+}
+
+void loop() {
+    SensorData data;
+    data.humidity = dht.readHumidity();
+    data.temperature = dht.readTemperature();
+
+    if (isnan(data.humidity) || isnan(data.temperature)) {
+        Serial.println("DHT11 Sensor Read Error!");
+        return;
+    }
+
+    // Print data before transmission
+    Serial.println("---------------------------------");
+    Serial.print("📡 Sending Data -> Temp: ");
+    Serial.print(data.temperature);
+    Serial.print(" °C, Hum: ");
+    Serial.print(data.humidity);
+    Serial.println(" %");
+
+    // Send data to receiver
+    bool success = radio.write(&data, sizeof(data));
+
+    if (success) {
+        Serial.println("✅ Data Sent Successfully!");
+    } else {
+        Serial.println("❌ Transmission Failed!");
+    }
+
+    Serial.println("---------------------------------");
+    
+    delay(2000);  // Wait before next transmission
+}
