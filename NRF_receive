@@ -1,0 +1,71 @@
+RECEIVER WITH POTENTIOMETER
+
+
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+#include <LiquidCrystal.h>
+
+// NRF24L01 module (CE, CSN)
+RF24 radio(8, 10);
+const byte address[6] = "01000";  // Communication address (same as transmitter)
+
+// LCD configuration (RS, EN, D4, D5, D6, D7)
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
+// Data structure for receiving sensor data
+struct SensorData {
+    float temperature;
+    float humidity;
+};
+
+void setup() {
+    Serial.begin(9600);   // Initialize serial communication
+    
+    // Initialize LCD
+    lcd.begin(16, 2);
+    lcd.print("Initializing...");
+    delay(2000);
+    
+    // Initialize NRF24L01
+    radio.begin();        
+    radio.openReadingPipe(0, address);  // Set the same address as transmitter
+    radio.setPALevel(RF24_PA_LOW);      
+    radio.startListening();  // Set as receiver
+
+    // Display message on LCD
+    lcd.clear();
+    lcd.print("NRF24 RX Ready");
+    Serial.println("NRF24L01 Receiver Initialized - Waiting for Data...");
+    delay(1000);
+}
+
+void loop() {
+    if (radio.available()) {  // If data is available from the transmitter
+        SensorData receivedData;
+        radio.read(&receivedData, sizeof(receivedData));  // Read the incoming data
+
+        // Print received data to Serial Monitor
+        Serial.println("---------------------------------");
+        Serial.print("📥 Received Data -> Temp: ");
+        Serial.print(receivedData.temperature);
+        Serial.print(" °C, Hum: ");
+        Serial.print(receivedData.humidity);
+        Serial.println(" %");
+        Serial.println("---------------------------------");
+
+        // Display data on LCD
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Temp: ");
+        lcd.print(receivedData.temperature);
+        lcd.print(" C");
+
+        lcd.setCursor(0, 1);
+        lcd.print("Hum: ");
+        lcd.print(receivedData.humidity);
+        lcd.print(" %");
+
+        delay(4000);  // Pause before updating LCD again
+    }
+}
