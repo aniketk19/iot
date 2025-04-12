@@ -1,0 +1,36 @@
+#include <ESP8266WiFi.h>
+#include <DHT.h>
+#include <ThingSpeak.h>
+
+// WiFi Credentials
+const char* ssid = "HomeNetwork";
+const char* password = "123456789";
+
+// ThingSpeak API Key & Channel
+unsigned long channelID = 2863939;
+const char* apiKey = "JMJP0AN6MNGLQEOG";
+
+DHT dht(D1, DHT11);  // DHT sensor on D1 (GPIO5)
+WiFiClient client;
+
+void setup() {
+    Serial.begin(115200);
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) delay(1000);
+    Serial.println("WiFi Connected!");
+    dht.begin();
+    ThingSpeak.begin(client);
+}
+
+void loop() {
+    float temp = dht.readTemperature();
+    float hum = dht.readHumidity();
+    if (isnan(temp) || isnan(hum)) return;
+
+    ThingSpeak.setField(1, temp);
+    ThingSpeak.setField(2, hum);
+    ThingSpeak.writeFields(channelID, apiKey);
+    
+    Serial.printf("Temp: %.1f°C  Hum: %.1f%%\n", temp, hum);
+    delay(15000);
+}
