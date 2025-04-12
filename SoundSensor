@@ -1,0 +1,25 @@
+const int soundPin = A0;  // Sound sensor on A0
+const int ledPin = 3;     // LED on D3
+const int threshold = 500; // Adjust this value (0-1023)
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  int soundLevel = analogRead(soundPin);
+  
+  // Show sound level in Serial Monitor
+  Serial.print("Sound: ");
+  Serial.println(soundLevel);
+  
+  // Turn LED on if sound is loud
+  if(soundLevel > threshold) {
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(ledPin, LOW);
+  }
+  
+  delay(50); // Small delay
+}
